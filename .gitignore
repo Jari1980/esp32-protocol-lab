@@ -1,0 +1,6 @@
+# Secrets
+**/WifiSecrets.h
+**/MqttSecrets.h
+
+# PlatformIO
+.pio/
