@@ -1,15 +1,15 @@
 #include <Arduino.h>
-#include "Pins.h"
+#include "LedController.h"
+
+LedController leds;
 
 void setup() {
-  pinMode(RED_LED, OUTPUT);
-  pinMode(BLUE_LED, OUTPUT);
-  pinMode(GREEN_LED, OUTPUT);
+  leds.begin();
 }
 
 void loop() {
-  digitalWrite(RED_LED, HIGH);
+  leds.turnOn(GREEN_LED);
   delay(1000);
-  digitalWrite(RED_LED, LOW);
+  leds.turnOff(GREEN_LED);
   delay(1000);
 }
