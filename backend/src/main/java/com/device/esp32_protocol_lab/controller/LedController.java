@@ -3,9 +3,11 @@ package com.device.esp32_protocol_lab.controller;
 import com.device.esp32_protocol_lab.client.Esp32LedClient;
 import com.device.esp32_protocol_lab.model.LedCommand;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -18,6 +20,11 @@ public class LedController {
         this.esp32LedClient = esp32LedClient;
     }
 
+    @CrossOrigin(
+            origins = "http://localhost:5173",
+            methods = RequestMethod.POST,
+            allowedHeaders = "Content-Type"
+    )
     @PostMapping("/led")
     public ResponseEntity<Void> controlLed(@RequestBody LedCommand command) {
         esp32LedClient.sendCommand(command);

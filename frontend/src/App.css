@@ -1,0 +1,34 @@
+.control-panel {
+  width: min(100% - 40px, 760px);
+  margin: 0 auto;
+  padding: 72px 0;
+}
+
+.panel-header { margin-bottom: 36px; }
+.eyebrow { margin-bottom: 12px; color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: 0.14em; }
+.panel-header h1 { margin: 0 0 10px; font-size: clamp(2.5rem, 7vw, 4.5rem); line-height: 0.95; }
+.panel-header > p:last-child { color: var(--muted); }
+.led-list { display: grid; gap: 12px; }
+.led-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 22px 24px; border: 1px solid var(--border); border-left: 5px solid var(--led-color); background: var(--surface); box-shadow: 0 8px 24px rgb(29 36 45 / 6%); }
+.led-red { --led-color: #e05252; }
+.led-blue { --led-color: #3f7de8; }
+.led-green { --led-color: #3f9c72; }
+.led-label, .led-actions { display: flex; align-items: center; }
+.led-label { gap: 12px; }
+.led-label h2 { margin: 0; font-size: 1.1rem; letter-spacing: 0.08em; }
+.protocol-label { color: var(--muted); font-size: 0.72rem; }
+.status-light { width: 12px; height: 12px; border-radius: 50%; background: var(--border); box-shadow: inset 0 0 0 2px rgb(0 0 0 / 10%); }
+.status-light.is-on { background: var(--led-color); box-shadow: 0 0 12px var(--led-color); }
+.status-text { min-width: 30px; color: var(--muted); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; }
+.led-actions { gap: 8px; }
+.led-actions button { min-width: 64px; padding: 9px 14px; border: 1px solid var(--border); border-radius: 3px; color: var(--text); background: transparent; font: inherit; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; cursor: pointer; }
+.led-actions button:hover, .led-actions button:focus-visible { border-color: var(--led-color); }
+.led-actions button.active { border-color: var(--led-color); color: white; background: var(--led-color); }
+.request-error { margin: 20px 0 0; color: #a43f32; font-size: 0.9rem; }
+
+@media (max-width: 520px) {
+  .control-panel { width: min(100% - 28px, 760px); padding: 44px 0; }
+  .led-row { align-items: flex-start; flex-direction: column; gap: 18px; }
+  .led-actions { width: 100%; }
+  .led-actions button { flex: 1; }
+}
