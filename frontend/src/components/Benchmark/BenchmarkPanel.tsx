@@ -4,19 +4,49 @@ import { BenchmarkResults } from './BenchmarkResults'
 import { LatencyDistribution } from './LatencyDistribution'
 import { LatencyPieChart } from './LatencyPieChart'
 import type { BenchmarkProtocol, BenchmarkResult } from './benchmarkTypes'
+import { runHttpBenchmark } from '../../services/benchmarkRunner'
 
-const emptyResult: BenchmarkResult = {
+function createEmptyResult(protocol: BenchmarkProtocol = 'HTTP'): BenchmarkResult {
+  return {
+    protocol,
+    requestedCount: 100,
+    successfulSamples: [],
+    failures: [],
+    summary: { average: null, median: null, p95: null, min: null, max: null },
+    distribution: { samples: [] },
+  }
+}
+
+const initialResult: BenchmarkResult = {
   protocol: 'HTTP',
+  requestedCount: 100,
+  successfulSamples: [],
+  failures: [],
   summary: { average: null, median: null, p95: null, min: null, max: null },
   distribution: { samples: [] },
 }
 
 export function BenchmarkPanel() {
   const [protocol, setProtocol] = useState<BenchmarkProtocol>('HTTP')
-  const [result, setResult] = useState<BenchmarkResult>(emptyResult)
+  const [result, setResult] = useState<BenchmarkResult>(initialResult)
+  const [isRunning, setIsRunning] = useState(false)
+
+  async function handleStart() {
+    if (protocol !== 'HTTP') {
+      return
+    }
+
+    setIsRunning(true)
+
+    try {
+      setResult(await runHttpBenchmark())
+    } finally {
+      setIsRunning(false)
+    }
+  }
 
   function handleReset() {
-    setResult({ ...emptyResult, protocol })
+    setResult(createEmptyResult(protocol))
   }
 
   return (
@@ -26,11 +56,11 @@ export function BenchmarkPanel() {
         <h2 id="benchmark-heading">Protocol benchmark</h2>
         <p>Run a fixed 100-request test and inspect its latency when measurement is available.</p>
       </div>
-      <BenchmarkControls protocol={protocol} onProtocolChange={setProtocol} onStart={() => undefined} isRunning={false} />
+      <BenchmarkControls protocol={protocol} onProtocolChange={setProtocol} onStart={() => void handleStart()} isRunning={isRunning} />
       <BenchmarkResults summary={result.summary} />
       <div className="distribution-grid">
-        <LatencyDistribution data={result.distribution} />
-        <LatencyPieChart data={result.distribution} />
+        <LatencyDistribution samples={result.successfulSamples} summary={result.summary} />
+        <LatencyPieChart samples={result.successfulSamples} />
       </div>
       <button type="button" className="clear-results" onClick={handleReset}>Clear results</button>
     </section>
