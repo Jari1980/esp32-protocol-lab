@@ -18,4 +18,12 @@ public:
   void turnOff(int ledPin) {
     digitalWrite(ledPin, LOW);
   }
+
+  void setBlue(bool on) {
+    if (on) {
+      turnOn(BLUE_LED);
+    } else {
+      turnOff(BLUE_LED);
+    }
+  }
 };

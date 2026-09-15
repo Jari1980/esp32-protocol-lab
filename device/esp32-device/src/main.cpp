@@ -1,12 +1,14 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <WebServer.h>
+#include <WebSocketsServer.h>
 #include <WiFi.h>
 #include "LedController.h"
 #include "WifiSecrets.h"
 
 LedController leds;
 WebServer server(80);
+WebSocketsServer webSocket(81);
 
 void handleLed() {
   JsonDocument request;
@@ -39,6 +41,32 @@ void handleLed() {
   server.send(200, "application/json", "{\"success\":true}");
 }
 
+void handleWebSocketEvent(
+    uint8_t clientNum,
+    WStype_t type,
+    uint8_t* payload,
+    size_t length) {
+  if (type != WStype_TEXT) {
+    return;
+  }
+
+  JsonDocument request;
+  if (deserializeJson(request, payload, length)) {
+    webSocket.sendTXT(clientNum, "{\"error\":\"invalid JSON\"}");
+    return;
+  }
+
+  const char* color = request["color"];
+  if (color == nullptr || strcmp(color, "BLUE") != 0) {
+    webSocket.sendTXT(clientNum, "{\"error\":\"invalid color\"}");
+    return;
+  }
+
+  bool on = request["on"] | false;
+  leds.setBlue(on);
+  webSocket.sendTXT(clientNum, "{\"success\":true}");
+}
+
 void setup() {
   Serial.begin(115200);
   Serial.println();
@@ -63,8 +91,15 @@ void setup() {
   server.on("/led", HTTP_POST, handleLed);
   server.begin();
   Serial.println("HTTP server ready: POST /led");
+
+  webSocket.begin();
+  webSocket.onEvent(handleWebSocketEvent);
+  Serial.print("WebSocket server ready: ws://");
+  Serial.print(WiFi.localIP());
+  Serial.println(":81");
 }
 
 void loop() {
   server.handleClient();
+  webSocket.loop();
 }
