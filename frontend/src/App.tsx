@@ -4,6 +4,7 @@ import { BenchmarkPanel } from './components/Benchmark/BenchmarkPanel'
 import { LedControlPanel } from './components/LedControl/LedControlPanel'
 import type { LedName } from './components/LedControl/ledTypes'
 import { sendRedLedCommand } from './services/ledClient'
+import { connect, sendBlueLedCommand } from './services/webSocketClient'
 
 function App() {
   const [ledStates, setLedStates] = useState<Record<LedName, boolean>>({
@@ -21,6 +22,21 @@ function App() {
     setLedState(led, isOn)
 
     if (led !== 'RED') {
+      if (led !== 'BLUE') {
+        return
+      }
+
+      setRequestError(null)
+
+      try {
+        await connect()
+        await sendBlueLedCommand({ color: 'BLUE', on: isOn })
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown WebSocket error'
+        setRequestError(message)
+        console.error(message, error)
+      }
+
       return
     }
 

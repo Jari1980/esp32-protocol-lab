@@ -4,7 +4,7 @@ import { BenchmarkResults } from './BenchmarkResults'
 import { LatencyDistribution } from './LatencyDistribution'
 import { LatencyPieChart } from './LatencyPieChart'
 import type { BenchmarkProtocol, BenchmarkResult } from './benchmarkTypes'
-import { runHttpBenchmark } from '../../services/benchmarkRunner'
+import { runHttpBenchmark, runWebSocketBenchmark } from '../../services/benchmarkRunner'
 
 function createEmptyResult(protocol: BenchmarkProtocol = 'HTTP'): BenchmarkResult {
   return {
@@ -30,16 +30,21 @@ export function BenchmarkPanel() {
   const [protocol, setProtocol] = useState<BenchmarkProtocol>('HTTP')
   const [result, setResult] = useState<BenchmarkResult>(initialResult)
   const [isRunning, setIsRunning] = useState(false)
+  
 
   async function handleStart() {
-    if (protocol !== 'HTTP') {
+    if (protocol === 'MQTT') {
       return
     }
 
     setIsRunning(true)
 
     try {
-      setResult(await runHttpBenchmark())
+      const nextResult = protocol === 'HTTP'
+        ? await runHttpBenchmark()
+        : await runWebSocketBenchmark()
+        console.log('Benchmark result:', nextResult)
+      setResult(nextResult)
     } finally {
       setIsRunning(false)
     }

@@ -6,6 +6,7 @@ import java.net.http.WebSocket;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Consumer;
 
 import jakarta.annotation.PreDestroy;
 
@@ -25,6 +26,9 @@ public class Esp32WebSocketClient {
 
     // Volatile to ensure visibility across threads
     private volatile WebSocket webSocket;
+
+    // Lightweight incoming message handler to avoid depending on Spring types
+    private volatile Consumer<String> incomingMessageHandler;
 
     @EventListener(ApplicationReadyEvent.class)
     public void start() {
@@ -54,6 +58,10 @@ public class Esp32WebSocketClient {
         return ws.sendText(json, true).toCompletableFuture();
     }
 
+    public void setIncomingMessageHandler(Consumer<String> handler) {
+        this.incomingMessageHandler = handler;
+    }
+
     @PreDestroy
     public void stop() {
         log.info("Shutting down Esp32WebSocketClient");
@@ -68,19 +76,32 @@ public class Esp32WebSocketClient {
         }
     }
 
-    private static class SimpleListener implements WebSocket.Listener {
+    private class SimpleListener implements WebSocket.Listener {
 
         private static final Logger log = LoggerFactory.getLogger(SimpleListener.class);
 
         @Override
         public void onOpen(WebSocket webSocket) {
             log.info("WebSocket onOpen");
+            // Request the first incoming message from the server
+            webSocket.request(1);
             WebSocket.Listener.super.onOpen(webSocket);
         }
 
         @Override
         public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-            log.info("Received WebSocket text message: {}", data);
+            String payload = data == null ? null : data.toString();
+            log.info("Received WebSocket text message: {}", payload);
+            Consumer<String> handler = incomingMessageHandler;
+            if (handler != null && payload != null) {
+                try {
+                    handler.accept(payload);
+                } catch (Exception e) {
+                    log.warn("Incoming message handler threw an exception", e);
+                }
+            }
+            // Request the next message after processing the current one
+            webSocket.request(1);
             return CompletableFuture.completedFuture(null);
         }
 

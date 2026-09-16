@@ -10,7 +10,7 @@ export type LatencySummary = {
 
 export type BenchmarkCommand = {
   index: number
-  color: 'RED'
+  color: 'RED' | 'BLUE'
   on: boolean
 }
 

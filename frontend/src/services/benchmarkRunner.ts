@@ -1,4 +1,5 @@
 import { sendRedLedCommand } from './ledClient'
+import { connect, sendBlueLedCommand } from './webSocketClient'
 import type {
   BenchmarkCommand,
   BenchmarkFailure,
@@ -44,7 +45,7 @@ export async function runHttpBenchmark(): Promise<BenchmarkResult> {
     const startedAt = performance.now()
 
     try {
-      await sendRedLedCommand(command)
+      await sendRedLedCommand({ color: 'RED', on: command.on })
       successfulSamples.push({
         requestIndex: index,
         command,
@@ -62,6 +63,47 @@ export async function runHttpBenchmark(): Promise<BenchmarkResult> {
 
   return {
     protocol: 'HTTP',
+    requestedCount: BENCHMARK_REQUEST_COUNT,
+    successfulSamples,
+    failures,
+    summary: calculateSummary(successfulSamples),
+    distribution: { samples: successfulSamples },
+  }
+}
+
+export async function runWebSocketBenchmark(): Promise<BenchmarkResult> {
+  await connect()
+
+  const successfulSamples: LatencySample[] = []
+  const failures: BenchmarkFailure[] = []
+
+  for (let index = 0; index < BENCHMARK_REQUEST_COUNT; index += 1) {
+    const command: BenchmarkCommand = {
+      index,
+      color: 'BLUE',
+      on: index % 2 === 0,
+    }
+    const startedAt = performance.now()
+
+    try {
+      await sendBlueLedCommand({ color: 'BLUE', on: command.on })
+      successfulSamples.push({
+        requestIndex: index,
+        command,
+        latencyMs: performance.now() - startedAt,
+      })
+    } catch (error) {
+      failures.push({
+        requestIndex: index,
+        command,
+        durationMs: performance.now() - startedAt,
+        message: error instanceof Error ? error.message : 'Unknown WebSocket error',
+      })
+    }
+  }
+
+  return {
+    protocol: 'WebSocket',
     requestedCount: BENCHMARK_REQUEST_COUNT,
     successfulSamples,
     failures,
