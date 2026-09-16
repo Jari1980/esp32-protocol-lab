@@ -48,6 +48,13 @@
 .pie-frame { height: 300px; }
 .chart-tooltip { display: grid; gap: 3px; padding: 10px 12px; border: 1px solid var(--border); color: var(--text); background: var(--surface); box-shadow: 0 8px 24px rgb(29 36 45 / 12%); font-size: 0.75rem; }
 .chart-tooltip strong { font-weight: 700; }
+.benchmark-comparison { margin-bottom: 20px; overflow-x: auto; padding: 16px; border: 1px solid var(--border); background: var(--surface); }
+.benchmark-comparison h3 { margin: 0 0 12px; font-size: 0.95rem; font-weight: 400; }
+.benchmark-comparison table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.benchmark-comparison th, .benchmark-comparison td { padding: 10px 12px; border-top: 1px solid var(--border); text-align: right; }
+.benchmark-comparison th:first-child, .benchmark-comparison td:first-child { text-align: left; }
+.benchmark-comparison thead th { color: var(--muted); font-size: 0.72rem; font-weight: 700; }
+.benchmark-comparison tbody th { font-weight: 400; }
 .clear-results { color: var(--text); background: transparent; }
 
 @media (max-width: 520px) {

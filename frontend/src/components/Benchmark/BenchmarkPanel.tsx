@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { BenchmarkControls } from './BenchmarkControls'
+import { BenchmarkComparison } from './BenchmarkComparison'
 import { BenchmarkResults } from './BenchmarkResults'
 import { LatencyDistribution } from './LatencyDistribution'
 import { LatencyPieChart } from './LatencyPieChart'
@@ -17,20 +18,10 @@ function createEmptyResult(protocol: BenchmarkProtocol = 'HTTP'): BenchmarkResul
   }
 }
 
-const initialResult: BenchmarkResult = {
-  protocol: 'HTTP',
-  requestedCount: 100,
-  successfulSamples: [],
-  failures: [],
-  summary: { average: null, median: null, p95: null, min: null, max: null },
-  distribution: { samples: [] },
-}
-
 export function BenchmarkPanel() {
   const [protocol, setProtocol] = useState<BenchmarkProtocol>('HTTP')
-  const [result, setResult] = useState<BenchmarkResult>(initialResult)
+  const [results, setResults] = useState<Partial<Record<BenchmarkProtocol, BenchmarkResult>>>({})
   const [isRunning, setIsRunning] = useState(false)
-  
 
   async function handleStart() {
     if (protocol === 'MQTT') {
@@ -44,15 +35,17 @@ export function BenchmarkPanel() {
         ? await runHttpBenchmark()
         : await runWebSocketBenchmark()
         console.log('Benchmark result:', nextResult)
-      setResult(nextResult)
+      setResults((currentResults) => ({ ...currentResults, [nextResult.protocol]: nextResult }))
     } finally {
       setIsRunning(false)
     }
   }
 
   function handleReset() {
-    setResult(createEmptyResult(protocol))
+    setResults({})
   }
+
+  const result = results[protocol] ?? createEmptyResult(protocol)
 
   return (
     <section className="panel-section benchmark-panel" aria-labelledby="benchmark-heading">
@@ -67,6 +60,7 @@ export function BenchmarkPanel() {
         <LatencyDistribution samples={result.successfulSamples} summary={result.summary} />
         <LatencyPieChart samples={result.successfulSamples} />
       </div>
+      <BenchmarkComparison results={results} />
       <button type="button" className="clear-results" onClick={handleReset}>Clear results</button>
     </section>
   )
