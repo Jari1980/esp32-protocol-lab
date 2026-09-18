@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * Minimal MQTT client using Eclipse Paho v3.
@@ -34,6 +35,7 @@ public class MqttClientService {
     private final String password;
 
     private IMqttClient client;
+    private volatile Consumer<String> incomingMessageHandler;
     private final String stateTopic = "protocol-lab/esp32/green/state";
     private final String setTopic = "protocol-lab/esp32/green/set";
 
@@ -93,6 +95,10 @@ public class MqttClientService {
                 client.subscribe(stateTopic, (topic, msg) -> {
                     String payload = new String(msg.getPayload(), StandardCharsets.UTF_8);
                     logger.info("Received state message on topic '{}': {}", topic, payload);
+                    Consumer<String> handler = incomingMessageHandler;
+                    if (handler != null) {
+                        handler.accept(payload);
+                    }
                 });
             } else {
                 logger.warn("MQTT client did not connect to broker: {}", brokerUrl);
@@ -124,11 +130,13 @@ public class MqttClientService {
     /**
      * Publish a simple JSON command to the ESP32 green set topic.
      * Example: {"color":"GREEN","on":true}
+     *
+     * Returns true when publish succeeded, false otherwise.
      */
-    public void publishGreenLed(boolean on) {
+    public boolean publishGreenLed(boolean on) {
         if (client == null || !client.isConnected()) {
             logger.warn("MQTT client not connected - cannot publish message");
-            return;
+            return false;
         }
 
         String json = String.format("{\"color\":\"GREEN\",\"on\":%s}", Boolean.toString(on));
@@ -140,9 +148,15 @@ public class MqttClientService {
         try {
             logger.info("Publishing to {} payload={}", setTopic, json);
             client.publish(setTopic, message);
+            return true;
         } catch (MqttException e) {
             logger.error("Failed to publish MQTT message: {}", e.getMessage());
+            return false;
         }
+    }
+
+    public void setIncomingMessageHandler(Consumer<String> handler) {
+        this.incomingMessageHandler = handler;
     }
 
     private String makeClientId() {

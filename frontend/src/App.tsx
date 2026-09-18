@@ -5,6 +5,7 @@ import { LedControlPanel } from './components/LedControl/LedControlPanel'
 import type { LedName } from './components/LedControl/ledTypes'
 import { sendRedLedCommand } from './services/ledClient'
 import { connect, sendBlueLedCommand } from './services/webSocketClient'
+import { connect as connectMqtt, sendGreenLedCommand } from './services/mqttWebSocketClient'
 
 function App() {
   const [ledStates, setLedStates] = useState<Record<LedName, boolean>>({
@@ -23,6 +24,17 @@ function App() {
 
     if (led !== 'RED') {
       if (led !== 'BLUE') {
+        setRequestError(null)
+
+        try {
+          await connectMqtt()
+          await sendGreenLedCommand({ color: 'GREEN', on: isOn })
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown MQTT WebSocket error'
+          setRequestError(message)
+          console.error(message, error)
+        }
+
         return
       }
 

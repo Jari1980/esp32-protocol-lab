@@ -29,7 +29,11 @@ const metrics: ComparisonMetric[] = [
   { label: 'Failed requests', getValue: (result) => result.failures.length, format: formatCount },
 ]
 
-const protocols: Array<'HTTP' | 'WebSocket'> = ['HTTP', 'WebSocket']
+const protocols: Array<{ value: BenchmarkProtocol; label: string }> = [
+  { value: 'HTTP', label: 'HTTP' },
+  { value: 'WebSocket', label: 'WebSocket' },
+  { value: 'MQTT', label: 'MQTT / WebSocket' },
+]
 
 export function BenchmarkComparison({ results }: BenchmarkComparisonProps) {
   return (
@@ -39,17 +43,17 @@ export function BenchmarkComparison({ results }: BenchmarkComparisonProps) {
         <thead>
           <tr>
             <th scope="col">Metric</th>
-            {protocols.map((protocol) => <th scope="col" key={protocol}>{protocol}</th>)}
+            {protocols.map(({ value, label }) => <th scope="col" key={value}>{label}</th>)}
           </tr>
         </thead>
         <tbody>
           {metrics.map(({ label, getValue, format }) => (
             <tr key={label}>
               <th scope="row">{label}</th>
-              {protocols.map((protocol) => {
+              {protocols.map(({ value: protocol }) => {
                 const result = results[protocol]
-                const value = result === undefined ? null : getValue(result)
-                return <td key={protocol}>{format(value)}</td>
+                const metricValue = result === undefined ? null : getValue(result)
+                return <td key={protocol}>{format(metricValue)}</td>
               })}
             </tr>
           ))}

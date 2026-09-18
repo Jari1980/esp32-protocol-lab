@@ -11,15 +11,19 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 public class WebSocketConfig implements WebSocketConfigurer {
 
     private final TextSocketHandler textSocketHandler;
+    private final MqttWebSocketHandler mqttWebSocketHandler;
 
     @Autowired
-    public WebSocketConfig(TextSocketHandler textSocketHandler) {
+    public WebSocketConfig(TextSocketHandler textSocketHandler, MqttWebSocketHandler mqttWebSocketHandler) {
         this.textSocketHandler = textSocketHandler;
+        this.mqttWebSocketHandler = mqttWebSocketHandler;
     }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(textSocketHandler, "/ws")
                 .setAllowedOrigins("http://localhost:5173");
+        registry.addHandler(mqttWebSocketHandler, "/mqtt")
+            .setAllowedOrigins("http://localhost:5173");
     }
 }

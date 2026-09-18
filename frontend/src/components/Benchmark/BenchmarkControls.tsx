@@ -14,7 +14,7 @@ export function BenchmarkControls({ protocol, onProtocolChange, onStart, isRunni
       <select id="benchmark-protocol" value={protocol} onChange={(event) => onProtocolChange(event.target.value as BenchmarkProtocol)}>
         <option value="HTTP">HTTP</option>
         <option value="WebSocket">WebSocket</option>
-        <option value="MQTT">MQTT</option>
+        <option value="MQTT">MQTT / WebSocket</option>
       </select>
       <span className="request-count">100 requests</span>
       <button type="button" className="benchmark-start" onClick={onStart} disabled={isRunning}>

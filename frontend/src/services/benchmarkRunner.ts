@@ -1,5 +1,6 @@
 import { sendRedLedCommand } from './ledClient'
 import { connect, sendBlueLedCommand } from './webSocketClient'
+import { connect as connectMqtt, sendGreenLedCommand } from './mqttWebSocketClient'
 import type {
   BenchmarkCommand,
   BenchmarkFailure,
@@ -104,6 +105,47 @@ export async function runWebSocketBenchmark(): Promise<BenchmarkResult> {
 
   return {
     protocol: 'WebSocket',
+    requestedCount: BENCHMARK_REQUEST_COUNT,
+    successfulSamples,
+    failures,
+    summary: calculateSummary(successfulSamples),
+    distribution: { samples: successfulSamples },
+  }
+}
+
+export async function runMqttBenchmark(): Promise<BenchmarkResult> {
+  await connectMqtt()
+
+  const successfulSamples: LatencySample[] = []
+  const failures: BenchmarkFailure[] = []
+
+  for (let index = 0; index < BENCHMARK_REQUEST_COUNT; index += 1) {
+    const command: BenchmarkCommand = {
+      index,
+      color: 'GREEN',
+      on: index % 2 === 0,
+    }
+    const startedAt = performance.now()
+
+    try {
+      await sendGreenLedCommand({ color: 'GREEN', on: command.on })
+      successfulSamples.push({
+        requestIndex: index,
+        command,
+        latencyMs: performance.now() - startedAt,
+      })
+    } catch (error) {
+      failures.push({
+        requestIndex: index,
+        command,
+        durationMs: performance.now() - startedAt,
+        message: error instanceof Error ? error.message : 'Unknown MQTT WebSocket error',
+      })
+    }
+  }
+
+  return {
+    protocol: 'MQTT',
     requestedCount: BENCHMARK_REQUEST_COUNT,
     successfulSamples,
     failures,
