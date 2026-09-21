@@ -42,37 +42,24 @@ This gives the project three separate communication flows:
 ## Technologies
 ### Backend
 
-* Java
-
-* Spring Boot
-
-* REST / HTTP
-
-* WebSocket
-
-* MQTT
-
-* Eclipse Paho MQTT client
-
-* JUnit 5
-
-* Mockito
+- Java
+- Spring Boot
+- REST / HTTP
+- WebSocket
+- MQTT
+- Eclipse Paho MQTT client
+- JUnit 5
+- Mockito
 
 ### ESP32
 
-* C++
-
-* Arduino framework
-
-* Wi-Fi
-
-* HTTP server
-
-* WebSocket server
-
-* MQTT using PubSubClient
-
-* ArduinoJson
+- C++
+- Arduino framework
+- Wi-Fi
+- HTTP server
+- WebSocket server
+- MQTT using PubSubClient
+- ArduinoJson
 
 ### Frontend
 
